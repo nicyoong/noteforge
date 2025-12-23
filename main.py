@@ -49,4 +49,12 @@ class MainWindow(QMainWindow):
         # Load initial list + select last note or create one
         self.model.reload()
         self._select_initial_note()
-        
+
+    def _wire(self) -> None:
+        # Search / tag filter
+        self.ui.search.textChanged.connect(self._on_filters_changed)
+        self.ui.tag_filter.textChanged.connect(self._on_filters_changed)
+
+        # Selection changes
+        sel = self.ui.table.selectionModel()
+        sel.selectionChanged.connect(self._on_selection_changed)
