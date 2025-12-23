@@ -136,4 +136,19 @@ class MainWindowUI:
         self.toolbar.addAction(self.act_import)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.act_focus_search)
-        
+
+        # Menu
+        menu = win.menuBar()
+        file_menu = menu.addMenu("&File")
+        file_menu.addAction(self.act_new)
+        file_menu.addAction(self.act_delete)
+        file_menu.addSeparator()
+        file_menu.addAction(self.act_export)
+        file_menu.addAction(self.act_import)
+
+        help_menu = menu.addMenu("&Help")
+        help_menu.addAction(self.act_about)
+
+        # Status bar
+        self.status = QStatusBar()
+        win.setStatusBar(self.status)
