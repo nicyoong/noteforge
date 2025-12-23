@@ -45,4 +45,8 @@ class MainWindow(QMainWindow):
 
         self._wire()
         self._restore_state()
+
+        # Load initial list + select last note or create one
+        self.model.reload()
+        self._select_initial_note()
         
