@@ -216,4 +216,8 @@ class NoteDB:
                 (fts_query,),
             )
         return [self._row_to_note(r) for r in cur.fetchall()]
+    def all_notes_as_dicts(self) -> list[dict[str, Any]]:
+        cur = self.con.cursor()
+        cur.execute("SELECT * FROM notes ORDER BY updated_at DESC")
+        return [dict(r) for r in cur.fetchall()]
     
