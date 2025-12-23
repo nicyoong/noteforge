@@ -107,4 +107,33 @@ class MainWindowUI:
         self.splitter.addWidget(right)
         self.splitter.setStretchFactor(0, 1)
         self.splitter.setStretchFactor(1, 3)
+
+        # Toolbar / actions
+        self.toolbar = QToolBar("Main")
+        win.addToolBar(self.toolbar)
+
+        self.act_new = QAction("New", win)
+        self.act_new.setShortcut(QKeySequence.New)
+
+        self.act_delete = QAction("Delete", win)
+        self.act_delete.setShortcut(QKeySequence.Delete)
+
+        self.act_export = QAction("Export…", win)
+        self.act_export.setShortcut(QKeySequence("Ctrl+E"))
+
+        self.act_import = QAction("Import…", win)
+        self.act_import.setShortcut(QKeySequence("Ctrl+I"))
+
+        self.act_focus_search = QAction("Focus Search", win)
+        self.act_focus_search.setShortcut(QKeySequence.Find)
+
+        self.act_about = QAction("About", win)
+
+        self.toolbar.addAction(self.act_new)
+        self.toolbar.addAction(self.act_delete)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.act_export)
+        self.toolbar.addAction(self.act_import)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.act_focus_search)
         
