@@ -138,3 +138,21 @@ class NoteDB:
         self.con.commit()
         return int(cur.lastrowid)
     
+    def get_note(self, note_id: int) -> Note | None:
+        cur = self.con.cursor()
+        cur.execute("SELECT * FROM notes WHERE id=?", (note_id,))
+        row = cur.fetchone()
+        return self._row_to_note(row) if row else None
+
+    def update_note(self, note_id: int, title: str, body: str, tags: str) -> None:
+        now = utc_now_iso()
+        self.con.execute(
+            "UPDATE notes SET title=?, body=?, tags=?, updated_at=? WHERE id=?",
+            (title.strip() or "Untitled", body, tags, now, note_id),
+        )
+        self.con.commit()
+
+    def delete_note(self, note_id: int) -> None:
+        self.con.execute("DELETE FROM notes WHERE id=?", (note_id,))
+        self.con.commit()
+    
