@@ -90,3 +90,9 @@ class NoteDB:
         self.con.row_factory = sqlite3.Row
         self._init_db()
     
+    def close(self) -> None:
+        try:
+            self.con.close()
+        except Exception:
+            pass
+    
