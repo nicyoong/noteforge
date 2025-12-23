@@ -368,4 +368,24 @@ class MainWindow(QMainWindow):
             "- Autosave debouncing\n"
             "- Background import/export (thread pool)\n",
         )
-    
+
+
+def main() -> int:
+    app = QApplication(sys.argv)
+    app.setApplicationName("Noteforge")
+
+    data_dir = default_data_dir()
+    db_path = data_dir / "noteforge.sqlite3"
+    db = NoteDB(db_path)
+
+    win = MainWindow(db)
+    win.resize(1100, 720)
+    win.show()
+
+    code = app.exec()
+    db.close()
+    return code
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
