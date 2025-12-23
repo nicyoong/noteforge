@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
@@ -10,9 +10,9 @@ from database import Note, NoteDB
 
 def _fmt_dt(iso_str: str) -> str:
     try:
-        # Not perfect, but good enough for display
-        dt = datetime.fromisoformat(iso_str.replace("Z", "+00:00"))
-        return dt.strftime("%Y-%m-%d %H:%M")
+        dt_utc = datetime.fromisoformat(iso_str.replace("Z", "+00:00"))
+        dt_local = dt_utc.astimezone()
+        return dt_local.strftime("%Y-%m-%d %H:%M")
     except Exception:
         return iso_str
 
