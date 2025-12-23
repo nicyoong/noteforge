@@ -221,3 +221,50 @@ class NoteDB:
         cur.execute("SELECT * FROM notes ORDER BY updated_at DESC")
         return [dict(r) for r in cur.fetchall()]
     
+    def import_notes(self, notes: Iterable[dict[str, Any]], merge: bool = True) -> tuple[int, int]:
+        """
+        Returns (inserted, updated). If merge=True:
+        - if an 'id' exists and matches, update it
+        - else insert new (new id)
+        """
+        inserted = 0
+        updated = 0
+        cur = self.con.cursor()
+
+        for n in notes:
+            title = str(n.get("title", "Untitled"))
+            body = str(n.get("body", ""))
+            tags = str(n.get("tags", ""))
+            created_at = str(n.get("created_at") or utc_now_iso())
+            updated_at = str(n.get("updated_at") or utc_now_iso())
+
+            note_id = n.get("id")
+            if merge and note_id is not None:
+                try:
+                    note_id_int = int(note_id)
+                except Exception:
+                    note_id_int = None
+
+                if note_id_int is not None:
+                    cur.execute("SELECT id FROM notes WHERE id=?", (note_id_int,))
+                    exists = cur.fetchone() is not None
+                    if exists:
+                        cur.execute(
+                            """
+                            UPDATE notes
+                            SET title=?, body=?, tags=?, created_at=?, updated_at=?
+                            WHERE id=?
+                            """,
+                            (title, body, tags, created_at, updated_at, note_id_int),
+                        )
+                        updated += 1
+                        continue
+
+            cur.execute(
+                "INSERT INTO notes(title, body, tags, created_at, updated_at) VALUES(?,?,?,?,?)",
+                (title, body, tags, created_at, updated_at),
+            )
+            inserted += 1
+
+        self.con.commit()
+        return inserted, updated
