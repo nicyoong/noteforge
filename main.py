@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QItemSelection, QItemSelectionModel, QSettings, QSignalBlocker, QThreadPool, QTimer
+from PySide6.QtCore import QItemSelection, QItemSelectionModel, QSettings, QSignalBlocker, QThreadPool, QTimer, Qt
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -160,7 +160,7 @@ class MainWindow(QMainWindow):
             self._load_note(None)
             return
 
-        note_id = self.model.data(indexes[0], role=1)  # Qt.UserRole == 1
+        note_id = self.model.data(indexes[0], role=Qt.UserRole)
         try:
             note_id = int(note_id)
         except Exception:
