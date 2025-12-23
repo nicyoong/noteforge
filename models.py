@@ -8,6 +8,7 @@ from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 
 from database import Note, NoteDB
 
+
 def _fmt_dt(iso_str: str) -> str:
     try:
         dt_utc = datetime.fromisoformat(iso_str.replace("Z", "+00:00"))
@@ -23,6 +24,7 @@ class NoteRow:
     title: str
     tags: str
     updated_at: str
+
 
 class NotesTableModel(QAbstractTableModel):
     COL_TITLE = 0
@@ -47,7 +49,8 @@ class NotesTableModel(QAbstractTableModel):
         self.beginResetModel()
         notes = self.db.list_notes(search=self._search, tag_filter=self._tag_filter)
         self._rows = [
-            NoteRow(id=n.id, title=n.title, tags=n.tags, updated_at=n.updated_at) for n in notes
+            NoteRow(id=n.id, title=n.title, tags=n.tags, updated_at=n.updated_at)
+            for n in notes
         ]
         self.endResetModel()
 
@@ -57,7 +60,9 @@ class NotesTableModel(QAbstractTableModel):
     def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
         return 0 if parent.isValid() else 3
 
-    def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole) -> Any:
+    def headerData(
+        self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole
+    ) -> Any:
         if role != Qt.DisplayRole:
             return None
         if orientation == Qt.Horizontal and 0 <= section < len(self.headers):

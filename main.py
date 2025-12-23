@@ -3,7 +3,15 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QItemSelection, QItemSelectionModel, QSettings, QSignalBlocker, QThreadPool, QTimer, Qt
+from PySide6.QtCore import (
+    QItemSelection,
+    QItemSelectionModel,
+    QSettings,
+    QSignalBlocker,
+    QThreadPool,
+    QTimer,
+    Qt,
+)
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -14,7 +22,14 @@ from PySide6.QtWidgets import (
 from database import NoteDB, default_data_dir
 from models import NotesTableModel
 from ui import MainWindowUI
-from workers import FunctionWorker, export_notes_to_json, import_notes_from_json, ExportResult, ImportResult
+from workers import (
+    FunctionWorker,
+    export_notes_to_json,
+    import_notes_from_json,
+    ExportResult,
+    ImportResult,
+)
+
 
 class MainWindow(QMainWindow):
     def __init__(self, db: NoteDB):
@@ -112,7 +127,7 @@ class MainWindow(QMainWindow):
         if self.current_note_id is not None:
             self.settings.setValue("notes/last_id", self.current_note_id)
         super().closeEvent(event)
-    
+
     def _select_initial_note(self) -> None:
         last_id = self.settings.value("notes/last_id")
         if last_id is not None:
@@ -134,14 +149,14 @@ class MainWindow(QMainWindow):
 
         # else create one
         self.new_note()
-    
+
     def _select_row(self, row: int) -> None:
         if row < 0 or row >= self.model.rowCount():
             return
         idx = self.model.index(row, 0)
         self.ui.table.scrollTo(idx)
         self.ui.table.selectRow(row)
-    
+
     def _on_filters_changed(self) -> None:
         # Commit current edits before reloading list, so search results include latest text.
         self.model.set_filters(
@@ -152,8 +167,10 @@ class MainWindow(QMainWindow):
             self._select_row(0)
         else:
             self._load_note(None)
-    
-    def _on_selection_changed(self, selected: QItemSelection, deselected: QItemSelection) -> None:
+
+    def _on_selection_changed(
+        self, selected: QItemSelection, deselected: QItemSelection
+    ) -> None:
         # Commit previous note before switching
         self._commit_note()
 
@@ -168,7 +185,7 @@ class MainWindow(QMainWindow):
         except Exception:
             note_id = None
         self._load_note(note_id)
-    
+
     def _load_note(self, note_id: int | None) -> None:
         self.current_note_id = note_id
         self._dirty = False
@@ -191,7 +208,9 @@ class MainWindow(QMainWindow):
 
         note = self.db.get_note(note_id)
         if note is None:
-            self.ui.status.showMessage("Note not found (it may have been deleted).", 3000)
+            self.ui.status.showMessage(
+                "Note not found (it may have been deleted).", 3000
+            )
             self.model.reload()
             return
 
@@ -243,7 +262,7 @@ class MainWindow(QMainWindow):
             prefix += f"*Tags:* `{tags}`\n\n---\n\n"
         md = prefix + body
         self.ui.preview.setMarkdown(md)
-    
+
     # Actions
     def new_note(self) -> None:
         self._commit_note()
@@ -257,7 +276,7 @@ class MainWindow(QMainWindow):
         self.ui.title.setFocus()
         self.ui.title.selectAll()
         self.ui.status.showMessage(f"Created note #{new_id}", 2000)
-    
+
     def delete_current_note(self) -> None:
         if self.current_note_id is None:
             return
@@ -283,11 +302,14 @@ class MainWindow(QMainWindow):
         else:
             self._load_note(None)
         self.ui.status.showMessage(f"Deleted note #{note_id}", 2500)
-    
+
     def export_json(self) -> None:
         self._commit_note()
         path_str, _ = QFileDialog.getSaveFileName(
-            self, "Export Notes to JSON", str(Path.home() / "noteforge_export.json"), "JSON (*.json)"
+            self,
+            "Export Notes to JSON",
+            str(Path.home() / "noteforge_export.json"),
+            "JSON (*.json)",
         )
         if not path_str:
             return
@@ -296,18 +318,26 @@ class MainWindow(QMainWindow):
 
         worker = FunctionWorker(export_notes_to_json, path, notes)
         worker.signals.finished.connect(self._on_export_done)
-        worker.signals.error.connect(lambda msg: QMessageBox.critical(self, "Export failed", msg))
+        worker.signals.error.connect(
+            lambda msg: QMessageBox.critical(self, "Export failed", msg)
+        )
         self.thread_pool.start(worker)
         self.ui.status.showMessage("Exporting…", 2000)
 
     def _on_export_done(self, result: object) -> None:
         if isinstance(result, ExportResult):
-            QMessageBox.information(self, "Export complete", f"Exported {result.count} notes to:\n{result.path}")
+            QMessageBox.information(
+                self,
+                "Export complete",
+                f"Exported {result.count} notes to:\n{result.path}",
+            )
             self.ui.status.showMessage("Export complete.", 2500)
 
     def import_json(self) -> None:
         self._commit_note()
-        path_str, _ = QFileDialog.getOpenFileName(self, "Import Notes from JSON", str(Path.home()), "JSON (*.json)")
+        path_str, _ = QFileDialog.getOpenFileName(
+            self, "Import Notes from JSON", str(Path.home()), "JSON (*.json)"
+        )
         if not path_str:
             return
         path = Path(path_str)
@@ -315,7 +345,9 @@ class MainWindow(QMainWindow):
         # Background step 1: read/validate json
         worker = FunctionWorker(import_notes_from_json, path)
         worker.signals.finished.connect(self._on_import_data_ready)
-        worker.signals.error.connect(lambda msg: QMessageBox.critical(self, "Import failed", msg))
+        worker.signals.error.connect(
+            lambda msg: QMessageBox.critical(self, "Import failed", msg)
+        )
         self.thread_pool.start(worker)
         self.ui.status.showMessage("Reading import file…", 2000)
 
@@ -359,7 +391,7 @@ class MainWindow(QMainWindow):
                 f"Inserted: {result.inserted}\nUpdated: {result.updated}",
             )
             self.ui.status.showMessage("Import complete.", 2500)
-    
+
     def about(self) -> None:
         QMessageBox.information(
             self,

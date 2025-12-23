@@ -20,6 +20,7 @@ class FunctionWorker(QRunnable):
     - Emits finished(result) or error(str)
     - Optional progress callback: callable(int)
     """
+
     def __init__(self, fn: Callable[..., Any], *args: Any, **kwargs: Any):
         super().__init__()
         self.fn = fn

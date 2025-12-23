@@ -72,6 +72,7 @@ CREATE TRIGGER IF NOT EXISTS notes_au AFTER UPDATE ON notes BEGIN
 END;
 """
 
+
 @dataclass(frozen=True)
 class Note:
     id: int
@@ -89,20 +90,23 @@ class NoteDB:
         self.con = sqlite3.connect(str(self.db_path))
         self.con.row_factory = sqlite3.Row
         self._init_db()
-    
+
     def close(self) -> None:
         try:
             self.con.close()
         except Exception:
             pass
-    
+
     def _init_db(self) -> None:
         cur = self.con.cursor()
         cur.executescript(SCHEMA_SQL)
         cur.execute("SELECT value FROM meta WHERE key='schema_version'")
         row = cur.fetchone()
         if row is None:
-            cur.execute("INSERT INTO meta(key, value) VALUES('schema_version', ?)", (str(SCHEMA_VERSION),))
+            cur.execute(
+                "INSERT INTO meta(key, value) VALUES('schema_version', ?)",
+                (str(SCHEMA_VERSION),),
+            )
         self.con.commit()
 
         # Validate FTS5 availability early for clearer error messages.
@@ -111,13 +115,15 @@ class NoteDB:
         except sqlite3.OperationalError as e:
             # notes_fts('test') returns error normally; better check by running a match query
             try:
-                cur.execute("SELECT rowid FROM notes_fts WHERE notes_fts MATCH 'test' LIMIT 1")
+                cur.execute(
+                    "SELECT rowid FROM notes_fts WHERE notes_fts MATCH 'test' LIMIT 1"
+                )
             except sqlite3.OperationalError as e2:
                 raise RuntimeError(
                     "SQLite FTS5 is not available in this Python/SQLite build. "
                     "Try a different Python distribution or rebuild SQLite with FTS5."
                 ) from e2
-    
+
     def _row_to_note(self, r: sqlite3.Row) -> Note:
         return Note(
             id=int(r["id"]),
@@ -127,8 +133,10 @@ class NoteDB:
             created_at=str(r["created_at"]),
             updated_at=str(r["updated_at"]),
         )
-    
-    def create_note(self, title: str = "Untitled", body: str = "", tags: str = "") -> int:
+
+    def create_note(
+        self, title: str = "Untitled", body: str = "", tags: str = ""
+    ) -> int:
         now = utc_now_iso()
         cur = self.con.cursor()
         cur.execute(
@@ -137,7 +145,7 @@ class NoteDB:
         )
         self.con.commit()
         return int(cur.lastrowid)
-    
+
     def get_note(self, note_id: int) -> Note | None:
         cur = self.con.cursor()
         cur.execute("SELECT * FROM notes WHERE id=?", (note_id,))
@@ -155,7 +163,7 @@ class NoteDB:
     def delete_note(self, note_id: int) -> None:
         self.con.execute("DELETE FROM notes WHERE id=?", (note_id,))
         self.con.commit()
-    
+
     def list_notes(self, search: str = "", tag_filter: str = "") -> list[Note]:
         """
         - search: full-text query. We use a simple strategy:
@@ -186,11 +194,14 @@ class NoteDB:
         # - Wrap in quotes to treat as a phrase by default
         # - Allow advanced users to type FTS operators (AND/OR/NEAR/*) if they want
         fts_query = search
-        if any(tok in search for tok in ('"', " AND ", " OR ", " NOT ", " NEAR ", "*", ":", "(", ")")):
+        if any(
+            tok in search
+            for tok in ('"', " AND ", " OR ", " NOT ", " NEAR ", "*", ":", "(", ")")
+        ):
             # assume user knows what they're doing
             pass
         else:
-            fts_query = f'{search}*'
+            fts_query = f"{search}*"
 
         if tag_filter:
             cur.execute(
@@ -216,12 +227,15 @@ class NoteDB:
                 (fts_query,),
             )
         return [self._row_to_note(r) for r in cur.fetchall()]
+
     def all_notes_as_dicts(self) -> list[dict[str, Any]]:
         cur = self.con.cursor()
         cur.execute("SELECT * FROM notes ORDER BY updated_at DESC")
         return [dict(r) for r in cur.fetchall()]
-    
-    def import_notes(self, notes: Iterable[dict[str, Any]], merge: bool = True) -> tuple[int, int]:
+
+    def import_notes(
+        self, notes: Iterable[dict[str, Any]], merge: bool = True
+    ) -> tuple[int, int]:
         """
         Returns (inserted, updated). If merge=True:
         - if an 'id' exists and matches, update it
