@@ -241,3 +241,17 @@ class MainWindow(QMainWindow):
         md = prefix + body
         self.ui.preview.setMarkdown(md)
     
+    # Actions
+    def new_note(self) -> None:
+        self._commit_note()
+        new_id = self.db.create_note()
+        self.model.reload()
+        # select newly created note (should be top due to updated_at)
+        for r in range(self.model.rowCount()):
+            if self.model.note_id_at(r) == new_id:
+                self._select_row(r)
+                break
+        self.ui.title.setFocus()
+        self.ui.title.selectAll()
+        self.ui.status.showMessage(f"Created note #{new_id}", 2000)
+    
