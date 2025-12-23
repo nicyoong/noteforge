@@ -227,3 +227,17 @@ class MainWindow(QMainWindow):
                     break
 
         self.ui.status.showMessage("Saved.", 800)
+
+    def _render_preview(self) -> None:
+        # Render markdown from editor
+        title = self.ui.title.text().strip()
+        tags = self.ui.tags.text().strip()
+        body = self.ui.body.toPlainText()
+        prefix = ""
+        if title:
+            prefix += f"# {title}\n\n"
+        if tags:
+            prefix += f"*Tags:* `{tags}`\n\n---\n\n"
+        md = prefix + body
+        self.ui.preview.setMarkdown(md)
+    
