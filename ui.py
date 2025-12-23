@@ -25,3 +25,19 @@ from PySide6.QtWidgets import (
 )
 
 
+class MainWindowUI:
+    """
+    Pure UI wiring: creates widgets/actions and exposes them for the controller (main.py).
+    """
+    def setup(self, win: QMainWindow) -> None:
+        win.setWindowTitle("Noteforge — Offline Markdown Notes")
+
+        # Central layout
+        central = QWidget()
+        win.setCentralWidget(central)
+        root = QHBoxLayout(central)
+        root.setContentsMargins(8, 8, 8, 8)
+        root.setSpacing(8)
+
+        self.splitter = QSplitter(Qt.Horizontal)
+        root.addWidget(self.splitter)
