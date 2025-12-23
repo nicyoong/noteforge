@@ -80,3 +80,13 @@ class Note:
     tags: str
     created_at: str
     updated_at: str
+
+
+class NoteDB:
+    def __init__(self, db_path: Path):
+        self.db_path = db_path
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.con = sqlite3.connect(str(self.db_path))
+        self.con.row_factory = sqlite3.Row
+        self._init_db()
+    
