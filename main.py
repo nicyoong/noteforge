@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 from database import NoteDB, default_data_dir
 from models import NotesTableModel
 from ui import MainWindowUI
+from workers import FunctionWorker, export_notes_to_json, import_notes_from_json, ExportResult, ImportResult
 
 class MainWindow(QMainWindow):
     def __init__(self, db: NoteDB):
@@ -281,4 +282,78 @@ class MainWindow(QMainWindow):
             self._load_note(None)
         self.ui.status.showMessage(f"Deleted note #{note_id}", 2500)
     
+    def export_json(self) -> None:
+        self._commit_note()
+        path_str, _ = QFileDialog.getSaveFileName(
+            self, "Export Notes to JSON", str(Path.home() / "noteforge_export.json"), "JSON (*.json)"
+        )
+        if not path_str:
+            return
+        path = Path(path_str)
+        notes = self.db.all_notes_as_dicts()
+
+        worker = FunctionWorker(export_notes_to_json, path, notes)
+        worker.signals.finished.connect(self._on_export_done)
+        worker.signals.error.connect(lambda msg: QMessageBox.critical(self, "Export failed", msg))
+        self.thread_pool.start(worker)
+        self.ui.status.showMessage("Exporting…", 2000)
+
+    def _on_export_done(self, result: object) -> None:
+        if isinstance(result, ExportResult):
+            QMessageBox.information(self, "Export complete", f"Exported {result.count} notes to:\n{result.path}")
+            self.ui.status.showMessage("Export complete.", 2500)
+
+    def import_json(self) -> None:
+        self._commit_note()
+        path_str, _ = QFileDialog.getOpenFileName(self, "Import Notes from JSON", str(Path.home()), "JSON (*.json)")
+        if not path_str:
+            return
+        path = Path(path_str)
+
+        # Background step 1: read/validate json
+        worker = FunctionWorker(import_notes_from_json, path)
+        worker.signals.finished.connect(self._on_import_data_ready)
+        worker.signals.error.connect(lambda msg: QMessageBox.critical(self, "Import failed", msg))
+        self.thread_pool.start(worker)
+        self.ui.status.showMessage("Reading import file…", 2000)
+
+    def _on_import_data_ready(self, notes: object) -> None:
+        if not isinstance(notes, list):
+            QMessageBox.critical(self, "Import failed", "Invalid file structure.")
+            return
+
+        resp = QMessageBox.question(
+            self,
+            "Import notes?",
+            f"File contains {len(notes)} notes.\n\n"
+            "Import and merge into your database?\n"
+            "(If IDs match, notes will be updated; otherwise inserted.)",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.Yes,
+        )
+        if resp != QMessageBox.Yes:
+            return
+
+        # Background step 2: import into DB (fast usually, but keep UI responsive)
+        def do_import():
+            inserted, updated = self.db.import_notes(notes, merge=True)
+            return ImportResult(inserted=inserted, updated=updated)
+
+        worker2 = FunctionWorker(do_import)
+        worker2.signals.finished.connect(self._on_import_done)
+        worker2.signals.error.connect(lambda msg: QMessageBox.critical(self, "Import failed", msg))
+        self.thread_pool.start(worker2)
+        self.ui.status.showMessage("Importing…", 2000)
+
+    def _on_import_done(self, result: object) -> None:
+        if isinstance(result, ImportResult):
+            self.model.reload()
+            if self.model.rowCount() > 0:
+                self._select_row(0)
+            QMessageBox.information(
+                self,
+                "Import complete",
+                f"Inserted: {result.inserted}\nUpdated: {result.updated}",
+            )
+            self.ui.status.showMessage("Import complete.", 2500)
     
