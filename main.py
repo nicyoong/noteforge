@@ -30,3 +30,19 @@ class MainWindow(QMainWindow):
 
         self.current_note_id: int | None = None
         self._dirty = False
+
+        # Autosave debounce
+        self.save_timer = QTimer(self)
+        self.save_timer.setInterval(600)
+        self.save_timer.setSingleShot(True)
+        self.save_timer.timeout.connect(self._commit_note)
+
+        # Live preview debounce (separate so preview feels instant-ish without blocking)
+        self.preview_timer = QTimer(self)
+        self.preview_timer.setInterval(150)
+        self.preview_timer.setSingleShot(True)
+        self.preview_timer.timeout.connect(self._render_preview)
+
+        self._wire()
+        self._restore_state()
+        
