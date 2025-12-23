@@ -339,10 +339,11 @@ class MainWindow(QMainWindow):
             inserted, updated = self.db.import_notes(notes, merge=True)
             return ImportResult(inserted=inserted, updated=updated)
 
-        worker2 = FunctionWorker(do_import)
-        worker2.signals.finished.connect(self._on_import_done)
-        worker2.signals.error.connect(lambda msg: QMessageBox.critical(self, "Import failed", msg))
-        self.thread_pool.start(worker2)
+        try:
+            inserted, updated = self.db.import_notes(notes, merge=True)
+            self._on_import_done(ImportResult(inserted, updated))
+        except Exception as e:
+            QMessageBox.critical(self, "Import failed", str(e))
         self.ui.status.showMessage("Importing…", 2000)
 
     def _on_import_done(self, result: object) -> None:
