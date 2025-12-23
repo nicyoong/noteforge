@@ -79,4 +79,22 @@ class MainWindow(QMainWindow):
         self.ui.title.textChanged.connect(lambda: self.preview_timer.start())
         self.ui.tags.textChanged.connect(lambda: self.preview_timer.start())
         self.ui.body.textChanged.connect(lambda: self.preview_timer.start())
-        
+
+    def _restore_state(self) -> None:
+        geo = self.settings.value("window/geometry")
+        if geo is not None:
+            self.restoreGeometry(geo)
+        state = self.settings.value("window/state")
+        if state is not None:
+            self.restoreState(state)
+
+        split = self.settings.value("ui/splitter")
+        if split is not None:
+            self.ui.splitter.restoreState(split)
+
+        es = self.settings.value("ui/editor_split")
+        if es is not None:
+            self.ui.editor_split.restoreState(es)
+
+        self.ui.search.setText(self.settings.value("filters/search", ""))
+        self.ui.tag_filter.setText(self.settings.value("filters/tag", ""))
