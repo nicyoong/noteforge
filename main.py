@@ -98,3 +98,17 @@ class MainWindow(QMainWindow):
 
         self.ui.search.setText(self.settings.value("filters/search", ""))
         self.ui.tag_filter.setText(self.settings.value("filters/tag", ""))
+
+    def closeEvent(self, event) -> None:
+        # Best-effort commit before closing
+        self._commit_note()
+        self.settings.setValue("window/geometry", self.saveGeometry())
+        self.settings.setValue("window/state", self.saveState())
+        self.settings.setValue("ui/splitter", self.ui.splitter.saveState())
+        self.settings.setValue("ui/editor_split", self.ui.editor_split.saveState())
+        self.settings.setValue("filters/search", self.ui.search.text())
+        self.settings.setValue("filters/tag", self.ui.tag_filter.text())
+        if self.current_note_id is not None:
+            self.settings.setValue("notes/last_id", self.current_note_id)
+        super().closeEvent(event)
+    
