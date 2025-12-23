@@ -118,3 +118,13 @@ class NoteDB:
                     "Try a different Python distribution or rebuild SQLite with FTS5."
                 ) from e2
     
+    def _row_to_note(self, r: sqlite3.Row) -> Note:
+        return Note(
+            id=int(r["id"]),
+            title=str(r["title"]),
+            body=str(r["body"]),
+            tags=str(r["tags"]),
+            created_at=str(r["created_at"]),
+            updated_at=str(r["updated_at"]),
+        )
+    
