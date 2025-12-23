@@ -58,3 +58,15 @@ class MainWindow(QMainWindow):
         # Selection changes
         sel = self.ui.table.selectionModel()
         sel.selectionChanged.connect(self._on_selection_changed)
+
+        # Buttons / actions
+        self.ui.btn_new.clicked.connect(self.new_note)
+        self.ui.btn_delete.clicked.connect(self.delete_current_note)
+
+        self.ui.act_new.triggered.connect(self.new_note)
+        self.ui.act_delete.triggered.connect(self.delete_current_note)
+        self.ui.act_export.triggered.connect(self.export_json)
+        self.ui.act_import.triggered.connect(self.import_json)
+        self.ui.act_focus_search.triggered.connect(lambda: self.ui.search.setFocus())
+        self.ui.act_about.triggered.connect(self.about)
+        
