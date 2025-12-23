@@ -203,3 +203,27 @@ class MainWindow(QMainWindow):
             return
         self._dirty = True
         self.save_timer.start()
+
+    def _commit_note(self) -> None:
+        if self.current_note_id is None or not self._dirty:
+            return
+        note_id = self.current_note_id
+        title = self.ui.title.text()
+        tags = self.ui.tags.text()
+        body = self.ui.body.toPlainText()
+
+        self.db.update_note(note_id, title=title, body=body, tags=tags)
+        self._dirty = False
+
+        # Refresh list (keeps ordering by updated_at)
+        prev_id = self.current_note_id
+        self.model.reload()
+
+        # Try to reselect same note
+        if prev_id is not None:
+            for r in range(self.model.rowCount()):
+                if self.model.note_id_at(r) == prev_id:
+                    self._select_row(r)
+                    break
+
+        self.ui.status.showMessage("Saved.", 800)
