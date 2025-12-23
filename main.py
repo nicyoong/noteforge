@@ -150,3 +150,19 @@ class MainWindow(QMainWindow):
         else:
             self._load_note(None)
     
+    def _on_selection_changed(self, selected: QItemSelection, deselected: QItemSelection) -> None:
+        # Commit previous note before switching
+        self._commit_note()
+
+        indexes = selected.indexes()
+        if not indexes:
+            self._load_note(None)
+            return
+
+        note_id = self.model.data(indexes[0], role=1)  # Qt.UserRole == 1
+        try:
+            note_id = int(note_id)
+        except Exception:
+            note_id = None
+        self._load_note(note_id)
+    
