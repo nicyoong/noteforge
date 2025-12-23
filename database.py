@@ -96,3 +96,25 @@ class NoteDB:
         except Exception:
             pass
     
+    def _init_db(self) -> None:
+        cur = self.con.cursor()
+        cur.executescript(SCHEMA_SQL)
+        cur.execute("SELECT value FROM meta WHERE key='schema_version'")
+        row = cur.fetchone()
+        if row is None:
+            cur.execute("INSERT INTO meta(key, value) VALUES('schema_version', ?)", (str(SCHEMA_VERSION),))
+        self.con.commit()
+
+        # Validate FTS5 availability early for clearer error messages.
+        try:
+            cur.execute("SELECT notes_fts('test')")
+        except sqlite3.OperationalError as e:
+            # notes_fts('test') returns error normally; better check by running a match query
+            try:
+                cur.execute("SELECT rowid FROM notes_fts WHERE notes_fts MATCH 'test' LIMIT 1")
+            except sqlite3.OperationalError as e2:
+                raise RuntimeError(
+                    "SQLite FTS5 is not available in this Python/SQLite build. "
+                    "Try a different Python distribution or rebuild SQLite with FTS5."
+                ) from e2
+    
