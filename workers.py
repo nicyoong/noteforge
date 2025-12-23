@@ -34,3 +34,15 @@ class FunctionWorker(QRunnable):
             self.signals.finished.emit(result)
         except Exception as e:
             self.signals.error.emit(str(e))
+
+
+@dataclass(frozen=True)
+class ExportResult:
+    path: str
+    count: int
+
+
+@dataclass(frozen=True)
+class ImportResult:
+    inserted: int
+    updated: int
