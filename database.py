@@ -71,3 +71,12 @@ CREATE TRIGGER IF NOT EXISTS notes_au AFTER UPDATE ON notes BEGIN
     INSERT INTO notes_fts(rowid, title, body, tags) VALUES (new.id, new.title, new.body, new.tags);
 END;
 """
+
+@dataclass(frozen=True)
+class Note:
+    id: int
+    title: str
+    body: str
+    tags: str
+    created_at: str
+    updated_at: str
