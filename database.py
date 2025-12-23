@@ -128,3 +128,13 @@ class NoteDB:
             updated_at=str(r["updated_at"]),
         )
     
+    def create_note(self, title: str = "Untitled", body: str = "", tags: str = "") -> int:
+        now = utc_now_iso()
+        cur = self.con.cursor()
+        cur.execute(
+            "INSERT INTO notes(title, body, tags, created_at, updated_at) VALUES(?,?,?,?,?)",
+            (title.strip() or "Untitled", body, tags, now, now),
+        )
+        self.con.commit()
+        return int(cur.lastrowid)
+    
