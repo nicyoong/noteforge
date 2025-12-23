@@ -112,3 +112,25 @@ class MainWindow(QMainWindow):
             self.settings.setValue("notes/last_id", self.current_note_id)
         super().closeEvent(event)
     
+    def _select_initial_note(self) -> None:
+        last_id = self.settings.value("notes/last_id")
+        if last_id is not None:
+            try:
+                last_id = int(last_id)
+            except Exception:
+                last_id = None
+
+        # If we have any notes, select last_id if it exists, else first row.
+        if self.model.rowCount() > 0:
+            row_to_select = 0
+            if last_id is not None:
+                for r in range(self.model.rowCount()):
+                    if self.model.note_id_at(r) == last_id:
+                        row_to_select = r
+                        break
+            self._select_row(row_to_select)
+            return
+
+        # else create one
+        self.new_note()
+    
