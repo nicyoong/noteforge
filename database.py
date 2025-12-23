@@ -190,7 +190,7 @@ class NoteDB:
             # assume user knows what they're doing
             pass
         else:
-            fts_query = f'"{search}"'
+            fts_query = f'{search}*'
 
         if tag_filter:
             cur.execute(
@@ -198,7 +198,7 @@ class NoteDB:
                 SELECT n.*
                 FROM notes_fts f
                 JOIN notes n ON n.id = f.rowid
-                WHERE f MATCH ?
+                WHERE notes_fts MATCH ?
                   AND LOWER(n.tags) LIKE ?
                 ORDER BY n.updated_at DESC
                 """,
@@ -210,7 +210,7 @@ class NoteDB:
                 SELECT n.*
                 FROM notes_fts f
                 JOIN notes n ON n.id = f.rowid
-                WHERE f MATCH ?
+                WHERE notes_fts MATCH ?
                 ORDER BY n.updated_at DESC
                 """,
                 (fts_query,),
