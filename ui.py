@@ -110,6 +110,7 @@ class MainWindowUI:
 
         # Toolbar / actions
         self.toolbar = QToolBar("Main")
+        self.toolbar.setObjectName("main_toolbar")
         win.addToolBar(self.toolbar)
 
         self.act_new = QAction("New", win)
