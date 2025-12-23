@@ -166,3 +166,35 @@ class MainWindow(QMainWindow):
             note_id = None
         self._load_note(note_id)
     
+    def _load_note(self, note_id: int | None) -> None:
+        self.current_note_id = note_id
+        self._dirty = False
+
+        # Block signals to avoid triggering save/preview timers while loading
+        blockers = [
+            QSignalBlocker(self.ui.title),
+            QSignalBlocker(self.ui.tags),
+            QSignalBlocker(self.ui.body),
+        ]
+        _ = blockers  # keep alive in scope
+
+        if note_id is None:
+            self.ui.title.setText("")
+            self.ui.tags.setText("")
+            self.ui.body.setPlainText("")
+            self.ui.preview.setMarkdown("")
+            self.ui.status.showMessage("No note selected.", 2500)
+            return
+
+        note = self.db.get_note(note_id)
+        if note is None:
+            self.ui.status.showMessage("Note not found (it may have been deleted).", 3000)
+            self.model.reload()
+            return
+
+        self.ui.title.setText(note.title)
+        self.ui.tags.setText(note.tags)
+        self.ui.body.setPlainText(note.body)
+        self._render_preview()
+        self.ui.status.showMessage(f"Loaded note #{note_id}", 1500)
+    
