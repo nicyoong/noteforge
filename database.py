@@ -156,3 +156,64 @@ class NoteDB:
         self.con.execute("DELETE FROM notes WHERE id=?", (note_id,))
         self.con.commit()
     
+    def list_notes(self, search: str = "", tag_filter: str = "") -> list[Note]:
+        """
+        - search: full-text query. We use a simple strategy:
+          - if empty -> list all notes ordered by updated desc
+          - else -> FTS MATCH across title/body/tags
+        - tag_filter: substring filter on tags (comma-separated), for quick narrowing.
+        """
+        search = (search or "").strip()
+        tag_filter = (tag_filter or "").strip().lower()
+
+        cur = self.con.cursor()
+
+        if not search:
+            if tag_filter:
+                cur.execute(
+                    """
+                    SELECT * FROM notes
+                    WHERE LOWER(tags) LIKE ?
+                    ORDER BY updated_at DESC
+                    """,
+                    (f"%{tag_filter}%",),
+                )
+            else:
+                cur.execute("SELECT * FROM notes ORDER BY updated_at DESC")
+            return [self._row_to_note(r) for r in cur.fetchall()]
+
+        # Basic FTS query sanitization:
+        # - Wrap in quotes to treat as a phrase by default
+        # - Allow advanced users to type FTS operators (AND/OR/NEAR/*) if they want
+        fts_query = search
+        if any(tok in search for tok in ('"', " AND ", " OR ", " NOT ", " NEAR ", "*", ":", "(", ")")):
+            # assume user knows what they're doing
+            pass
+        else:
+            fts_query = f'"{search}"'
+
+        if tag_filter:
+            cur.execute(
+                """
+                SELECT n.*
+                FROM notes_fts f
+                JOIN notes n ON n.id = f.rowid
+                WHERE f MATCH ?
+                  AND LOWER(n.tags) LIKE ?
+                ORDER BY n.updated_at DESC
+                """,
+                (fts_query, f"%{tag_filter}%"),
+            )
+        else:
+            cur.execute(
+                """
+                SELECT n.*
+                FROM notes_fts f
+                JOIN notes n ON n.id = f.rowid
+                WHERE f MATCH ?
+                ORDER BY n.updated_at DESC
+                """,
+                (fts_query,),
+            )
+        return [self._row_to_note(r) for r in cur.fetchall()]
+    
