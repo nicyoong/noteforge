@@ -141,3 +141,12 @@ class MainWindow(QMainWindow):
         self.ui.table.scrollTo(idx)
         self.ui.table.selectRow(row)
     
+    def _on_filters_changed(self) -> None:
+        # Commit current edits before reloading list, so search results include latest text.
+        self._commit_note()
+        self.model.set_filters(self.ui.search.text(), self.ui.tag_filter.text())
+        if self.model.rowCount() > 0:
+            self._select_row(0)
+        else:
+            self._load_note(None)
+    
