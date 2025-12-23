@@ -197,4 +197,9 @@ class MainWindow(QMainWindow):
         self.ui.body.setPlainText(note.body)
         self._render_preview()
         self.ui.status.showMessage(f"Loaded note #{note_id}", 1500)
-    
+
+    def _mark_dirty(self) -> None:
+        if self.current_note_id is None:
+            return
+        self._dirty = True
+        self.save_timer.start()
