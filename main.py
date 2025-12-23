@@ -357,3 +357,15 @@ class MainWindow(QMainWindow):
             )
             self.ui.status.showMessage("Import complete.", 2500)
     
+    def about(self) -> None:
+        QMessageBox.information(
+            self,
+            "About Noteforge",
+            "Noteforge is an offline Markdown note app built with PySide6.\n\n"
+            "Highlights:\n"
+            "- SQLite persistence + FTS5 full-text search\n"
+            "- Qt Model/View architecture\n"
+            "- Autosave debouncing\n"
+            "- Background import/export (thread pool)\n",
+        )
+    
