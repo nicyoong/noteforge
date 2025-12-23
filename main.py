@@ -134,3 +134,10 @@ class MainWindow(QMainWindow):
         # else create one
         self.new_note()
     
+    def _select_row(self, row: int) -> None:
+        if row < 0 or row >= self.model.rowCount():
+            return
+        idx = self.model.index(row, 0)
+        self.ui.table.scrollTo(idx)
+        self.ui.table.selectRow(row)
+    
