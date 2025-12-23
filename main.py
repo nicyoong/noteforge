@@ -74,4 +74,9 @@ class MainWindow(QMainWindow):
         self.ui.title.textChanged.connect(self._mark_dirty)
         self.ui.tags.textChanged.connect(self._mark_dirty)
         self.ui.body.textChanged.connect(self._mark_dirty)
+
+        # Preview updates
+        self.ui.title.textChanged.connect(lambda: self.preview_timer.start())
+        self.ui.tags.textChanged.connect(lambda: self.preview_timer.start())
+        self.ui.body.textChanged.connect(lambda: self.preview_timer.start())
         
