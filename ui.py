@@ -72,4 +72,39 @@ class MainWindowUI:
         btn_row.addWidget(self.btn_delete)
         btn_row.addStretch(1)
         left_layout.addLayout(btn_row)
+
+        # Right: editor + preview
+        right = QWidget()
+        right_layout = QVBoxLayout(right)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(6)
+
+        form = QFormLayout()
+        form.setLabelAlignment(Qt.AlignRight)
+        self.title = QLineEdit()
+        self.tags = QLineEdit()
+        self.tags.setPlaceholderText("comma,separated,tags")
+        form.addRow(QLabel("Title:"), self.title)
+        form.addRow(QLabel("Tags:"), self.tags)
+        right_layout.addLayout(form)
+
+        self.editor_split = QSplitter(Qt.Horizontal)
+
+        self.body = QTextEdit()
+        self.body.setPlaceholderText("# Markdown note\n\nStart typing…")
+
+        self.preview = QTextBrowser()
+        self.preview.setOpenExternalLinks(True)
+
+        self.editor_split.addWidget(self.body)
+        self.editor_split.addWidget(self.preview)
+        self.editor_split.setStretchFactor(0, 2)
+        self.editor_split.setStretchFactor(1, 2)
+
+        right_layout.addWidget(self.editor_split, 1)
+
+        self.splitter.addWidget(left)
+        self.splitter.addWidget(right)
+        self.splitter.setStretchFactor(0, 1)
+        self.splitter.setStretchFactor(1, 3)
         
