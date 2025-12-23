@@ -69,4 +69,9 @@ class MainWindow(QMainWindow):
         self.ui.act_import.triggered.connect(self.import_json)
         self.ui.act_focus_search.triggered.connect(lambda: self.ui.search.setFocus())
         self.ui.act_about.triggered.connect(self.about)
+
+        # Editor changes -> mark dirty + debounce save
+        self.ui.title.textChanged.connect(self._mark_dirty)
+        self.ui.tags.textChanged.connect(self._mark_dirty)
+        self.ui.body.textChanged.connect(self._mark_dirty)
         
