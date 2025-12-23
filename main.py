@@ -255,3 +255,30 @@ class MainWindow(QMainWindow):
         self.ui.title.selectAll()
         self.ui.status.showMessage(f"Created note #{new_id}", 2000)
     
+    def delete_current_note(self) -> None:
+        if self.current_note_id is None:
+            return
+        note_id = self.current_note_id
+        title = self.ui.title.text().strip() or "Untitled"
+
+        resp = QMessageBox.question(
+            self,
+            "Delete note?",
+            f"Delete note #{note_id}:\n\n{title}\n\nThis cannot be undone.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if resp != QMessageBox.Yes:
+            return
+
+        self.db.delete_note(note_id)
+        self.current_note_id = None
+        self._dirty = False
+        self.model.reload()
+        if self.model.rowCount() > 0:
+            self._select_row(0)
+        else:
+            self._load_note(None)
+        self.ui.status.showMessage(f"Deleted note #{note_id}", 2500)
+    
+    
